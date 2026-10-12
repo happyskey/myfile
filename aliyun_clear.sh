@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ver="202507272055"
+ver="202607272055"
 
 upgrade_url="https://xiaoyahelper.ddsrem.com/aliyun_clear.sh"
 upgrade_url_backup="http://xiaoyahelper.zngle.cf/aliyun_clear.sh"
