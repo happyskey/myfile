@@ -65,16 +65,16 @@ fi
 
 # 下载地址
 #share115ID1="xiaoya swwz4ps339r 3025203310983380933 8888"
-share_list_url_115="https://gitee.com/happyskey/myfile/raw/master/115share_list.txt"
-alishare_list_url="https://gitee.com/happyskey/myfile/raw/master/alishare_list.txt"
+share_list_url_115="http://web.happyskey.top:8108/myfile/115share_list.txt"
+alishare_list_url="http://web.happyskey.top:8108/myfile/alishare_list.txt"
 share_internal_url_115="$download_custom_url/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main/115share_list.txt"
 quarkshare_list_url="$download_custom_url/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main/quarkshare_list.txt"
-xyclear_url="https://gitee.com/happyskey/myfile/raw/master/xyclear.sh"
-xptv_url="https://gitee.com/happyskey/myfile/raw/master/xiaoya_alist.json"
-update_data_url="https://gitee.com/happyskey/myfile/raw/master/update_data.sh"
-rebootxy_url="https://gitee.com/happyskey/myfile/raw/master/rebootxy.sh"
-cnupdate_url="https://gitee.com/happyskey/myfile/raw/master/cnupdate.sh"
-emby115_clear_url="https://gitee.com/happyskey/myfile/raw/master/emby115_clear.sh"
+xyclear_url="http://web.happyskey.top:8108/myfile/xyclear.sh"
+xptv_url="http://web.happyskey.top:8108/myfile/xiaoya_alist.json"
+update_data_url="http://web.happyskey.top:8108/myfile/update_data.sh"
+rebootxy_url="http://web.happyskey.top:8108/myfile/rebootxy.sh"
+cnupdate_url="http://web.happyskey.top:8108/myfile/cnupdate.sh"
+emby115_clear_url="http://web.happyskey.top:8108/myfile/emby115_clear.sh"
 
 # alitv接口
 alitv=https://alitv.tv2345.top/api/oauth/alipan/token
@@ -216,7 +216,7 @@ fi
 
 if [ -f "/data/custom/ip_monitor.sh" ]; then
     > /data/custom/ip.txt
-    #wget -O "/data/custom/ip_monitor.sh" "https://gitee.com/happyskey/myfile/raw/master/emby/xiaoya/ip_monitor.sh"
+    #wget -O "/data/custom/ip_monitor.sh" "http://web.happyskey.top:8108/myfile/emby/xiaoya/ip_monitor.sh"
     #chmod +x /data/custom/ip_monitor.sh
 fi
 
