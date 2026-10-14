@@ -55,7 +55,7 @@ tail -F "$LOG" | while read -r line; do
         mv "$TMP_TMP" "$TMP"
     fi
 
-    # 当大于阈值时写入ip.txt
+    # 当大于阈值时写入ip.txt 
     if [ "$count" -gt "$threshold" ]; then
         outline="$reqtype $ip $logtime"
         grep -q "^$outline\$" "$OUT" || echo "$outline" >> "$OUT"
