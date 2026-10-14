@@ -16,3 +16,4 @@ find $1 -type f -iname "*.jpg" -exec sh -c 'for f; do s=$(stat -c %s "$f"); if [
 
 #大于 400 KB PNG → 缩放 70%
 find $1 -type f -iname "*.png" -print0 | while IFS= read -r -d '' f; do s=$(stat -c %s "$f"); if [ "$s" -gt 400000 ]; then ts=$(stat -c %Y "$f"); echo "处理：$f"; if convert "$f" -resize 70% -define png:color-type=6 "$f"; then touch -d "@$ts" "$f"; fi; fi; done
+
