@@ -5,7 +5,7 @@
 #   sudo bash emby-watch-install.sh
 
 # ===========================
-# 写入核心监控脚本（内容 100% 原样，未做任何修改）
+# 写入核心监控脚本（内容 100% 原样）
 # ===========================
 sudo tee /usr/local/bin/emby-watch.sh > /dev/null << 'EOF'
 #!/bin/bash
