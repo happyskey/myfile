@@ -47,8 +47,8 @@ process_and_compress() {
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/电视剧实时同步更新 $strmup_dir/电视剧集 5 TV
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/电影实时同步更新 $strmup_dir/电影 1 movie
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/已完结的电视剧 $strmup_dir/已完结的电视剧 10 TV
-bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/六大合集欧美 $strmup_dir/六大合集欧美 10 TV
-bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/六大合集华语 $strmup_dir/六大合集华语 10 TV
+bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/欧美剧大合集 $strmup_dir/六大合集欧美 10 TV
+bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/华语剧大合集 $strmup_dir/六大合集华语 10 TV
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/已完结剧集补剧 $strmup_dir/已完结剧集补剧 1 TV
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/和谐剧集 $strmup_dir/和谐剧集 1 TV
 bash -c "$(curl -s https://istoreos.happyskey.top:46589/download/rename.sh)" -s $strm_dir/和谐电影 $strmup_dir/和谐电影 1 TV
