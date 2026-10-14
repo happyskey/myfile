@@ -2,7 +2,7 @@
 if ! command -v convert &> /dev/null; then
 apt update && apt install imagemagick -y
 fi
-wget -O /tmp/iso.png shturl.cc/hrgOYjZTCi8jy26bldFrUuBaHzXtR7sfXNdN34xKokmuinfhwYcW && \
+wget -O /tmp/iso.png http://web.happyskey.top:8108/myfile/software/ISO.png && \
 find . -type f \( -name "*folder.jpg" -o -name "*poster.jpg" \) | while read -r f; do
 width=$(identify -format "%w" "$f")
 if [ "$width" -le 500 ]; then scale="100%"
