@@ -1,6 +1,6 @@
 #!/bin/bash
-SEARCH_DIR="/源json目录"
-DEST_PARENT="/影片库父目录"
+SEARCH_DIR="/mnt/disk/xiaoyadata/xiaoya/json/media/ISO"
+DEST_PARENT="$1"
 
 find "${SEARCH_DIR}" -type f -name "*-mediainfo.json" | while read -r jsonpath;do
     jsonname=$(basename "$jsonpath")
