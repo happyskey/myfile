@@ -1,0 +1,10 @@
+my_task:
+  client: qbittorrent
+  host: http://172.17.0.1:8085
+  username: admin
+  password: Aa123456
+  strategies:
+    my_strategy:
+      tags: MOVIEPILOT
+      remove: seeding_time > 60 or ratio > 1
+  delete_data: false
