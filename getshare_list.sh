@@ -10,7 +10,7 @@ update_xiaoya() {
     local current_image=$(docker inspect --format '{{.Config.Image}}' $container_name 2>/dev/null || true)
 
     # 第一层if开始
-    if [ "$current_image" = "$docker_cdn1/$images" ]; then
+    if [ "$current_image" = "$docker_cdn1/$current_image" ]; then
         # 第二层if开始
         if ! docker image inspect "$docker_cdn2/$container_images" >/dev/null 2>&1; then
             docker pull "$docker_cdn2/$container_images"
