@@ -1,3 +1,14 @@
+# 0. 时间检验
+cat > /etc/systemd/timesyncd.conf <<'EOF'
+[Time]
+NTP=ntp.aliyun.com ntp1.aliyun.com
+FallbackNTP=ntp.tencent.com
+EOF
+systemctl restart systemd-timesyncd
+sleep 10
+timedatectl timesync-status
+timedatectl | grep synchronized
+
 cat > /root/install-fail2ban.sh <<'SCRIPT'
 #!/bin/sh
 set -e
