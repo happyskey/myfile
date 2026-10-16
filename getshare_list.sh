@@ -29,6 +29,10 @@ if [ -n "$xiaoya_dir" ]; then
 	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 更新成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
 fi
 
+if [ -n "$emby_dir" ]; then
+	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 更新成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
+fi
+
 update_xiaoya() {
     local docker_cdn1="$1"
     local docker_cdn2="$2"
