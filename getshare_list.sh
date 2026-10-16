@@ -86,5 +86,5 @@ update_watchtower() {
 }
 
 # 执行调用
-update_xiaoya docker.1ms.run dockerproxy.net
+update_xiaoya dockerproxy.net docker.1ms.run
 # update_watchtower docker.1ms.run dockerproxy.net
