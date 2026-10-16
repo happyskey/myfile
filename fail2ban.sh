@@ -49,3 +49,7 @@ sleep 2
 
 # ========== 7. 查看状态 ==========
 fail2ban-client status sshd
+
+echo "✅ 安装配置完成！"
+echo "应急解封：fail2ban-client set sshd unbanip 你的IP"
+echo "实时日志：tail -f /var/log/fail2ban.log"
