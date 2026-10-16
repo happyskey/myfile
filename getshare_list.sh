@@ -17,7 +17,6 @@ update_xiaoya() {
     local current_image
     current_image=$(docker inspect --format '{{.Config.Image}}' "$container_name" 2>/dev/null || true)
 
-    # 修复此处判断条件
     if [ "$current_image" = "${docker_cdn1}/${container_images}" ]; then
         if ! docker image inspect "${docker_cdn2}/${container_images}" >/dev/null 2>&1; then
             echo "开始拉取镜像: ${docker_cdn2}/${container_images}"
@@ -60,12 +59,7 @@ update_watchtower() {
             docker rm "$container_name" 2>/dev/null || true
             docker rmi "${docker_cdn1}/${container_images}" 2>/dev/null || true
 
-            docker run -d --name="$container_name" --restart=always \
--v /var/run/docker.sock:/var/run/docker.sock \
--e TZ=Asia/Shanghai \
-"${docker_cdn2}/${container_images}" \
---include-stopped -c --schedule "0 0 7,15 * * *" \
-xiaoya xiaoya‑emd aliyuntvtoken xiaoya‑115cleaner moviepilot‑v2
+			docker run -d --name="$container_name" --restart=always -v /var/run/docker.sock:/var/run/docker.sock -e TZ=Asia/Shanghai "${docker_cdn2}/${container_images}" --include‑stopped -c --schedule "0 0 7,15 * * *" xiaoya xiaoya‑emd aliyuntvtoken xiaoya‑115cleaner moviepilot‑v2
             echo "${container_name} 容器重建完成"
         fi
     else
