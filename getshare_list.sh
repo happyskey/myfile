@@ -19,6 +19,7 @@ WARN() { echo -e "\033[33m[WARN]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }  # 
 ERROR() { echo -e "\033[31m[ERROR]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; } # 红色
 
 xiaoya_dir=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' "xiaoya" 2>/dev/null)
+emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' emby)")
 
 if [ -n "$xiaoya_dir" ]; then
 	wget -q -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 下载成功" && chmod +x "${xiaoya_dir}/update_data.sh" || { ERROR "update_data.sh 下载失败"; return 1; }
