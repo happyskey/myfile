@@ -22,11 +22,11 @@ xiaoya_dir=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/data"}}{
 emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' emby)")
 
 if [ -n "$xiaoya_dir" ]; then
-	wget -q -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 下载成功" && chmod +x "${xiaoya_dir}/update_data.sh" || { ERROR "update_data.sh 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh && INFO "cnupdate.sh 下载成功" && chmod +x "${xiaoya_dir}/cnupdate.sh" || { ERROR "cnupdate.sh 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt && INFO "alishare_list.txt 下载成功" || { ERROR "alishare_list.txt 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/115share_list.txt" http://web.happyskey.top:8108/myfile/115share_list.txt && INFO "115share_list.txt 下载成功" || { ERROR "115share_list.txt 下载失败"; return 1; }
-	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 下载成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 更新成功" && chmod +x "${xiaoya_dir}/update_data.sh" || { ERROR "update_data.sh 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh && INFO "cnupdate.sh 更新成功" && chmod +x "${xiaoya_dir}/cnupdate.sh" || { ERROR "cnupdate.sh 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt && INFO "alishare_list.txt 更新成功" || { ERROR "alishare_list.txt 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/115share_list.txt" http://web.happyskey.top:8108/myfile/115share_list.txt && INFO "115share_list.txt 更新成功" || { ERROR "115share_list.txt 下载失败"; return 1; }
+	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 更新成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
 fi
 
 update_xiaoya() {
