@@ -22,9 +22,9 @@ ignoreip  = 127.0.0.1/8 ::1
 [sshd]
 enabled  = true
 backend  = systemd
-maxretry = 5
-findtime = 10m
-bantime  = 6h
+maxretry = 5            # findtime 内失败 5 次即触发封禁
+findtime = 10m          # 统计窗口：10 分钟内的失败次数
+bantime  = 6h           # 封禁时长：6 小时（默认仅 10m，此处加强）
 action   = nftables
 EOF
 
