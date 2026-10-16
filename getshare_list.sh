@@ -63,7 +63,7 @@ update_watchtower() {
             echo "${container_name} 容器重建完成"
         fi
     else
-        echo "跳过watchtower: 当前镜像[$current_image] 不等于 ${docker_cdn1}/${container_images}"
+        echo "$container_name容器: 当前镜像[$current_image]"
     fi
 }
 
