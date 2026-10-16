@@ -21,10 +21,10 @@ ERROR() { echo -e "\033[31m[ERROR]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; } #
 xiaoya_dir=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' "xiaoya" 2>/dev/null)
 
 if [ -n "$xiaoya_dir" ]; then
-	wget -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 下载成功" && chmod +x "${xiaoya_dir}/update_data.sh" && INFO "update_data.sh 已添加执行权限" || { ERROR "update_data.sh 下载失败"; return 1; }
-	wget -O "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh && INFO "cnupdate.sh 下载成功" && chmod +x "${xiaoya_dir}/cnupdate.sh" && INFO "cnupdate.sh 已添加执行权限" || { ERROR "cnupdate.sh 下载失败"; return 1; }
-	wget -O "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt && INFO "alishare_list.txt 下载成功" || { ERROR "alishare_list.txt 下载失败"; return 1; }
-	wget -O "${xiaoya_dir}/115share_list" http://web.happyskey.top:8108/myfile/115share_list && INFO "115share_list 下载成功" || { ERROR "115share_list 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 下载成功" && chmod +x "${xiaoya_dir}/update_data.sh" && INFO "update_data.sh 已添加执行权限" || { ERROR "update_data.sh 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh && INFO "cnupdate.sh 下载成功" && chmod +x "${xiaoya_dir}/cnupdate.sh" && INFO "cnupdate.sh 已添加执行权限" || { ERROR "cnupdate.sh 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt && INFO "alishare_list.txt 下载成功" || { ERROR "alishare_list.txt 下载失败"; return 1; }
+	wget -q -O "${xiaoya_dir}/115share_list" http://web.happyskey.top:8108/myfile/115share_list && INFO "115share_list 下载成功" || { ERROR "115share_list 下载失败"; return 1; }
 fi
 
 update_xiaoya() {
