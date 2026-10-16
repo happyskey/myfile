@@ -1,5 +1,18 @@
 #!/bin/sh
 
+# 检测是否在终端运行
+if [ -t 1 ]; then
+    # 在终端运行
+    INTERACTIVE=1
+    DOCKER_EXEC="docker exec -it"
+    ARIA2_COLOR="--enable-color=true"
+else
+    # 非终端运行（如 cron）
+    INTERACTIVE=0
+    DOCKER_EXEC="docker exec"
+    ARIA2_COLOR="--enable-color=false"
+fi
+
 # 定义日志函数
 INFO() { echo -e "\033[34m[INFO]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }  # 绿色
 WARN() { echo -e "\033[33m[WARN]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }  # 黄色
