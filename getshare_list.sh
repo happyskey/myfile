@@ -42,6 +42,7 @@ download_file() {
 }
 
 if [ -n "$xiaoya_dir" ]; then
+	INFO xiaoya_dir目录：$xiaoya_dir
 	download_file "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh 1 || return 1
     download_file "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh 1 || return 1
     download_file "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt 0 || return 1
@@ -49,6 +50,7 @@ if [ -n "$xiaoya_dir" ]; then
 fi
 
 if [ -n "$emby_dir" ]; then
+	INFO emby_dir目录：$emby_dir
 	download_file "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt 0 || return 1
 fi
 
