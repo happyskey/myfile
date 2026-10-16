@@ -21,16 +21,35 @@ ERROR() { echo -e "\033[31m[ERROR]\033[0m[$(date '+%Y-%m-%d %H:%M:%S')] $1"; } #
 xiaoya_dir=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' "xiaoya" 2>/dev/null)
 emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' emby)")
 
+download_file() {
+    local dst="$1"
+    local url="$2"
+    local chmod_exec="$3" # 传1代表需要chmod +x
+
+    local tmp="${dst}.tmp"
+    wget -q -O "$tmp" "$url"
+    if [ $? -ne 0 ]; then
+        rm -f "$tmp"
+        ERROR "下载失败: $url"
+        return 1
+    fi
+    mv "$tmp" "$dst"
+    if [ "$chmod_exec" = "1" ]; then
+        chmod +x "$dst"
+    fi
+    INFO "更新成功: $dst"
+    return 0
+}
+
 if [ -n "$xiaoya_dir" ]; then
-	wget -q -O "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh && INFO "update_data.sh 更新成功" && chmod +x "${xiaoya_dir}/update_data.sh" || { ERROR "update_data.sh 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh && INFO "cnupdate.sh 更新成功" && chmod +x "${xiaoya_dir}/cnupdate.sh" || { ERROR "cnupdate.sh 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt && INFO "alishare_list.txt 更新成功" || { ERROR "alishare_list.txt 下载失败"; return 1; }
-	wget -q -O "${xiaoya_dir}/115share_list.txt" http://web.happyskey.top:8108/myfile/115share_list.txt && INFO "115share_list.txt 更新成功" || { ERROR "115share_list.txt 下载失败"; return 1; }
-	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 更新成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
+	download_file "${xiaoya_dir}/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh 1 || return 1
+    download_file "${xiaoya_dir}/cnupdate.sh" http://web.happyskey.top:8108/myfile/cnupdate.sh 1 || return 1
+    download_file "${xiaoya_dir}/alishare_list.txt" http://web.happyskey.top:8108/myfile/alishare_list.txt 0 || return 1
+    download_file "${xiaoya_dir}/115share_list.txt" http://web.happyskey.top:8108/myfile/115share_list.txt 0 || return 1
 fi
 
 if [ -n "$emby_dir" ]; then
-	wget -q -O "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt && INFO "pathlib.txt 更新成功" || { ERROR "pathlib.txt 下载失败"; return 1; }
+	download_file "${emby_dir}/xiaoya/pathlib.txt" http://web.happyskey.top:8108/myfile/pathlib.txt 0 || return 1
 fi
 
 update_xiaoya() {
