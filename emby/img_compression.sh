@@ -1,19 +1,57 @@
 #!/bin/sh
-#4K JPG → 2K / 70%
-find $1 -type f -iname "*.jpg" -exec sh -c 'for f; do w=$(identify -format "%w" "$f" 2>/dev/null); if [ -n "$w" ] && [ "$w" -ge 2561 ]; then ts=$(stat -c %Y "$f"); echo "处理：$f"; if mogrify -resize 2560x -quality 70 "$f"; then touch -d "@$ts" "$f"; fi; fi; done' sh {} +
+root="$1"
 
-#指定图片（folder/poster/cover）宽≥1001 压到1000px
-find $1 -type f \( -iname "*folder.jpg" -o -iname "*poster.jpg" -o -iname "*cover.jpg" \) -exec sh -c 'for f; do w=$(identify -format "%w" "$f" 2>/dev/null); if [ -n "$w" ] && [ "$w" -ge 1001 ]; then ts=$(stat -c %Y "$f"); echo "处理：$f"; if mogrify -resize 1000x -quality 75 "$f"; then touch -d "@$ts" "$f"; fi; fi; done' sh {} +
+find "$root" -type f \( -iname "*.jpg" -o -iname "*.png" \) -print0 |
+while IFS= read -r -d '' f; do
+    base=$(basename "$f" | tr 'A-Z' 'a-z')
 
-#PNG（clearlogo/logo）缩放到 1000px
-find $1 -type f \( -iname "clearlogo.png" -o -iname "logo.png" \) -print0 | while IFS= read -r -d '' f; do w=$(identify -format "%w" "$f" 2>/dev/null); if [ -n "$w" ] && [ "$w" -ge 1001 ]; then ts=$(stat -c %Y "$f"); echo "处理：$f"; if convert "$f" -resize 1000x -define png:color-type=6 "$f"; then touch -d "@$ts" "$f"; fi; fi; done
+    # 只取一次元数据
+    meta=$(identify -format "%w %b" "$f" 2>/dev/null) || continue
+    w=${meta%% *}
+    size=${meta#* }
+    [ -z "$w" ] && continue
 
-#大于 400 KB 的指定 JPG 文件（folder/poster/cover）
-find $1 -type f \( -iname "*folder.jpg" -o -iname "*poster.jpg" -o -iname "*cover.jpg" \) -exec sh -c 'for f; do s=$(stat -c %s "$f"); if [ "$s" -gt 400000 ]; then ts=$(stat -c %Y "$f"); echo "处理中：$f"; mogrify -resize 1000x -quality 70 "$f" && touch -d "@$ts" "$f"; fi; done' sh {} +
+    # 解析字节数（identify %b 返回如 "1.2MB"），这里改用 stat 更可靠
+    bytes=$(stat -c %s "$f")
+    ts=$(stat -c %Y "$f")
 
-#大于 400 KB JPG → 缩放 70%
-find $1 -type f -iname "*.jpg" -exec sh -c 'for f; do s=$(stat -c %s "$f"); if [ "$s" -gt 400000 ]; then ts=$(stat -c %Y "$f"); echo "处理中：$f"; mogrify -resize 70% "$f" && touch -d "@$ts" "$f"; fi; done' sh {} +
+    target=""   # 目标宽度
+    quality=""
 
-#大于 400 KB PNG → 缩放 70%
-find $1 -type f -iname "*.png" -print0 | while IFS= read -r -d '' f; do s=$(stat -c %s "$f"); if [ "$s" -gt 400000 ]; then ts=$(stat -c %Y "$f"); echo "处理：$f"; if convert "$f" -resize 70% -define png:color-type=6 "$f"; then touch -d "@$ts" "$f"; fi; fi; done
+    case "$base" in
+        *folder.jpg|*poster.jpg|*cover.jpg)
+            # 优先按宽度规则
+            if [ "$w" -ge 1001 ]; then target=1000; quality=75; fi
+            # 再叠加大小规则（取更严格者）
+            if [ "$bytes" -gt 400000 ]; then
+                target=1000; quality=70
+            fi
+            ;;
+        *clearlogo.png|*logo.png)
+            if [ "$w" -ge 1001 ]; then target=1000; fi
+            ;;
+        *.jpg)
+            if [ "$w" -ge 2561 ]; then target=2560; quality=70; fi
+            if [ "$bytes" -gt 400000 ]; then
+                # 已设过 target 就保留，否则按 70% 缩放
+                [ -z "$target" ] && quality=70
+            fi
+            ;;
+        *.png)
+            [ "$bytes" -gt 400000 ] && quality=70   # 用百分比缩放
+            ;;
+    esac
 
+    # 决定是否处理
+    if [ -n "$target" ] || [ -n "$quality" ]; then
+        echo "处理：$f"
+        if [ -n "$target" ]; then
+            geom="${target}x"
+        else
+            geom="70%"
+        fi
+        if mogrify -resize "$geom" ${quality:+-quality "$quality"} "$f"; then
+            touch -d "@$ts" "$f"
+        fi
+    fi
+done
