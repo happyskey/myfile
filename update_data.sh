@@ -66,7 +66,7 @@ fi
 #share115ID1="xiaoya swwz4ps339r 3025203310983380933 8888"
 share_list_url_115="http://web.happyskey.top:8108/myfile/115share_list.txt"
 alishare_list_url="http://web.happyskey.top:8108/myfile/alishare_list.txt"
-share_internal_url_115="$download_custom_url/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main/115share_list.txt"
+share_internal_url_115="http://web.happyskey.top:8108/data/115share_list.txt"
 quarkshare_list_url="$download_custom_url/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main/quarkshare_list.txt"
 xyclear_url="http://web.happyskey.top:8108/myfile/xyclear.sh"
 xptv_url="http://web.happyskey.top:8108/myfile/xiaoya_alist.json"
