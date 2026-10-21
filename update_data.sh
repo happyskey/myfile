@@ -59,7 +59,6 @@ if [ "$success" = false ]; then
     wget -P /data/data http://web.happyskey.top:8108/data/index.zip || wget -P /data/data $download_url1/index.zip
     wget -P /data/data http://web.happyskey.top:8108/data/tvbox.zip || wget -P /data/data $download_url1/tvbox.zip
     wget -P /data/data http://web.happyskey.top:8108/data/update.zip || wget -P /data/data $download_url1/update.zip
-    wget -P /data/data http://web.happyskey.top:8108/data/index.video.zip || wget -P /data/data $download_url1/index.video.zip
     wget -P /data/data http://web.happyskey.top:8108/data/version.zip || wget -P /data/data $download_url1/version.txt
 fi
 
