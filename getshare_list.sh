@@ -115,6 +115,9 @@ update_watchtower() {
 # 计划任务修复
 crontab -l | sed 's#https://gitee.com/happyskey/myfile/raw/master#http://web.happyskey.top:8108/myfile#g' | crontab -
 
+# 清理失效媒体库
+curl -X POST -H "X-Emby-Token: e825ed6f7f8f44ffa0563cddaddce14d" -H "Content-Type: application/json" -d '{"Id": "3259496"}' "http://127.0.0.1:6908/emby/Library/VirtualFolders/Delete"
+
 # 小雅镜像替换
 update_xiaoya docker.aeko.cn docker.1ms.run
 update_xiaoya docker.tv2345.top docker.1ms.run
