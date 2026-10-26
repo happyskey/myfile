@@ -121,6 +121,7 @@ Tmdbtest() {
         echo "图片下载失败，状态码: $http_code, Content-Type: $content_type"
         sed -i 's/"AltMovieDbImageUrl": ""/"AltMovieDbImageUrl": "https:\/\/wsrv.nl\/?url=https:\/\/image.tmdb.org"/' "$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
         echo "Tmdb替换为wsrv.nl图库CDN"
+		docker restart emby
     fi
 }
 
