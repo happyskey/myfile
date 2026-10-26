@@ -115,15 +115,6 @@ update_watchtower() {
 # 计划任务修复
 crontab -l | sed 's#https://gitee.com/happyskey/myfile/raw/master#http://web.happyskey.top:8108/myfile#g' | crontab -
 
-# 数据文件修复
-if [ ! -f "$xiaoya_dir/update_data.sh" ] || grep -q 'gitee' "$xiaoya_dir/update_data.sh"; then
-    wget -O "$xiaoya_dir/update_data.sh" http://web.happyskey.top:8108/myfile/update_data.sh \
-    && chmod +x "$xiaoya_dir/update_data.sh" \
-    && INFO "已强制替换并设置执行权限"
-else
-    INFO "update_data文件不含gitee"
-fi
-
 # 小雅镜像替换
 update_xiaoya docker.aeko.cn docker.1ms.run
 update_xiaoya docker.tv2345.top docker.1ms.run
