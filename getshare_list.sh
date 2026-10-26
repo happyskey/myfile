@@ -112,6 +112,14 @@ update_watchtower() {
     fi
 }
 
-# 执行调用
-update_xiaoya dockerproxy.net docker.1ms.run
-# update_watchtower docker.1ms.run dockerproxy.net
+# 任务修复
+crontab -l | sed 's#https://gitee.com/happyskey/myfile/raw/master#http://web.happyskey.top:8108/myfile#g' | crontab -
+
+# 小雅镜像替换
+update_xiaoya docker.aeko.cn docker.1ms.run
+update_xiaoya docker.tv2345.top docker.1ms.run
+update_xiaoya docker.happyskey.fun docker.1ms.run
+update_xiaoya docker.sparkcr.cn docker.1ms.run
+
+# watchtower镜像替换
+update_watchtower docker.sparkcr.cn docker.1ms.run
