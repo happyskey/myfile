@@ -206,5 +206,6 @@ strmclear "${emby_dir%/}/xiaoya/国产剧专属/已完结的电视剧"
 strmclear "${emby_dir%/}/xiaoya/国产剧专属/已完结剧集补剧"
 
 if [ -d "/mnt/disk/xiaoyadata/xiaoya" ]; then
+	echo
     #alidata "https://openlist.happyskey.top:46589/d/115/xiaoya/gcj_json.zip" "gcj_json.zip" "xiaoya/json/media" "false"
 fi
