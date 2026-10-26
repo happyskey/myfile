@@ -1,242 +1,143 @@
+cat > /usr/local/bin/emby-watch.sh << 'EOF'
 #!/bin/bash
+# =====================================================
+# 小雅Emby 终极根治版 2025 精准版（单库触发 + 双Emby + 防抖）
+# 特点：新增 .strm 文件 → 只刷新对应库，不全库扫描
+# =====================================================
 
-# 一键安装 Emby BadHttp 监控服务（核心脚本内容完全未修改）
-# 用法：把本文件保存为 emby-watch-install.sh 后执行
-#   sudo bash emby-watch-install.sh
+medir_dir=/mnt/disk/xiaoyadata
+# ========== 配置 ==========
+PATHS=(
+    "$medir_dir/xiaoya/每日更新/电影"
+    "$medir_dir/xiaoya/每日更新/电视剧"
+    "$medir_dir/xiaoya/每日更新/动漫剧场版"
+    "$medir_dir/xiaoya/每日更新/动漫"
+    "$medir_dir/xiaoya/纪录片（已刮削）"
+    "$medir_dir/xiaoya/国产剧专属/电影"
+    "$medir_dir/xiaoya/国产剧专属/电视剧集"
+    "$medir_dir/xiaoya/strm"
+    "$medir_dir/xiaoya/国产剧专属/综艺"
+)
 
-# ===========================
-# 写入核心监控脚本（内容 100% 原样）
-# ===========================
-sudo tee /usr/local/bin/emby-watch.sh > /dev/null << 'EOF'
-#!/bin/bash
+# 这里是每个库对应的真正 Emby Library ID（必须核对正确）
+IDS=(118755 118860 1616971 1649163 775355 2835113 2832232 3549058 3113916)
 
-logfile="/tmp/embyserver.log"
-tmpfile="/tmp/emby-badhttp.log"
-logblock="/var/log/emby/emby-badhttp-block.log"
+API_KEY="887bd92fa1aa4938a34d968b9575ab74"
+EMBY_URLS=("http://127.0.0.1:6908" "http://127.0.0.1:6909")
 
-# ==================== 新增配置区 ====================
-# 白名单文件（一行一个 IP 或网段，支援 CIDR，例如 192.168.1.0/24）
-WHITELIST_FILE="/var/log/emby/emby_whitelist.txt"
+LOG="/var/log/emby-watch-ultimate.log"
+LAST_TRIGGER_FILE="/tmp/emby-watch-last-trigger.log"
+DEBOUNCE_SEC=10  # 库级防抖（秒）
 
-# 永久黑名单文件（被拉进这里后永久 DROP，永不解封）
-BLACKLIST_FILE="/var/log/emby/emby_blacklist.txt"
+# ========== 日志 ==========
+log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG"; }
 
-# 封禁时间递进（秒）
-BANTIME_LEVEL=( 4 6 8 10 )
-# ====================================================
+log "🚀 小雅Emby 精准版启动成功！监控 ${#PATHS[@]} 个路径，仅触发单库扫描"
 
-# ==================== 新增：IP格式验证 ====================
-validate_ip() {
-    local ip="$1"
+# ========== 检查路径 ==========
+for p in "${PATHS[@]}"; do
+    [[ -d "$p" ]] || { log "❌ 路径不存在：$p"; exit 1; }
+done
 
-    # 必须符合 N.N.N.N
-    [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+# ========== 防抖函数 ==========
+should_trigger() {
+    local key="$1"
+    local now=$(date +%s)
+    local last_time=$(grep -F "$key" "$LAST_TRIGGER_FILE" 2>/dev/null | awk '{print $2}')
 
-    # 每段必须 0~255
-    IFS='.' read -r a b c d <<< "$ip"
-    for seg in "$a" "$b" "$c" "$d"; do
-        (( seg >= 0 && seg <= 255 )) || return 1
+    # 清理过期记录
+    awk -v now="$now" -v maxage=$((DEBOUNCE_SEC*2)) '$2+0 >= now-maxage {print $0}' "$LAST_TRIGGER_FILE" 2>/dev/null > "${LAST_TRIGGER_FILE}.tmp"
+    mv -f "${LAST_TRIGGER_FILE}.tmp" "$LAST_TRIGGER_FILE" 2>/dev/null
+
+    if [[ -z "$last_time" || $((now - last_time)) -gt $DEBOUNCE_SEC ]]; then
+        sed -i "/$key/d" "$LAST_TRIGGER_FILE" 2>/dev/null
+        echo "$key $now" >> "$LAST_TRIGGER_FILE"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# ========== 精准触发函数 ==========
+trigger_emby_refresh() {
+    local id="$1"
+    for EMBY_URL in "${EMBY_URLS[@]}"; do
+        # ✅ 使用 Library/RefreshItemsById 接口（只刷新该库）
+		URL="$EMBY_URL/emby/Items/$id/Refresh?Recursive=true&api_key=$API_KEY"
+        log "⚡ 单库刷新 → $URL"
+        curl -s -X POST "$URL" >/dev/null &
+    done
+}
+
+# ========== 核心监控 ==========
+while true; do
+    log "⚡ 开始 inotify 监控..."
+
+    inotifywait -m -r -q --format '%w%f' -e create -e moved_to "${PATHS[@]}" 2>/dev/null |
+    while read -r file; do
+        [[ -f "$file" ]] || continue
+        [[ "$file" == *.strm ]] || continue
+
+        # 确定触发库 ID
+        ID=""
+        for i in "${!PATHS[@]}"; do
+            if [[ "$file" == *"${PATHS[$i]}"* ]]; then
+                ID="${IDS[$i]}"
+                break
+            fi
+        done
+        [[ -z "$ID" ]] && continue
+
+        # 库级防抖
+        if ! should_trigger "$ID"; then
+            continue
+        fi
+
+        log "✨ 检测到新 strm 文件：$file"
+        trigger_emby_refresh "$ID"
+        sleep 0.3
     done
 
-    return 0
-}
-# =======================================================
-
-
-# 读取白名单和永久黑名单（热更新）
-load_lists() {
-    declare -gA WHITELIST BLACKLIST
-    WHITELIST=(); BLACKLIST=()
-
-    [[ -f "$WHITELIST_FILE" ]] && while IFS= read -r ip; do
-        [[ -n "$ip" && "$ip" != "#"* ]] && WHITELIST["$ip"]=1
-    done < "$WHITELIST_FILE"
-
-    [[ -f "$BLACKLIST_FILE" ]] && while IFS= read -r ip; do
-        [[ -n "$ip" && "$ip" != "#"* ]] && BLACKLIST["$ip"]=1
-    done < "$BLACKLIST_FILE"
-}
-load_lists   # 初次加载
-
-# 阈值
-BADHTTP_THRESHOLD=3
-RESP500_THRESHOLD=4
-
-# 计数器
-declare -A badhttp_times resp500_times ban_count
-
-# 已封禁 IP 及解封时间
-declare -A banned_ips
-
-# 初始化临时文件
-> "$tmpfile"
-> "$logblock"
-
-
-# 检查 IP 是否在名单内
-is_whitelisted() {
-    local ip="$1"
-    for wl in "${!WHITELIST[@]}"; do
-        if [[ "$wl" == *"/"* ]]; then
-            ip route get "$ip" 2>/dev/null | grep -q "src.*$wl" && return 0
-        elif [[ "$ip" == "$wl" ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-is_blacklisted() {
-    local ip="$1"
-    [[ -n "${BLACKLIST[$ip]}" ]]
-}
-
-
-# 永久拉黑
-permaban() {
-    local ip="$1"
-    iptables -I DOCKER-USER -s "$ip" -j DROP
-    echo "$ip" >> "$BLACKLIST_FILE"
-
-    echo "$(date '+%Y-%m-%d %H:%M:%S') 永久封禁 IP: $ip (拉入黑名单)" | tee -a "$logblock"
-
-    unset banned_ips["$ip"]
-    unset badhttp_times["$ip"]
-    unset resp500_times["$ip"]
-    unset ban_count["$ip"]
-}
-
-
-# 动态封禁时间
-get_bantime() {
-    local ip="$1"
-    local cnt=${ban_count[$ip]:-0}
-    local level=$(( cnt >= ${#BANTIME_LEVEL[@]} ? ${#BANTIME_LEVEL[@]}-1 : cnt ))
-    echo "${BANTIME_LEVEL[$level]}"
-}
-
-
-# 主循环
-tail -Fn0 "$logfile" | while read line; do
-    now=$(date +%s)
-
-    # 每 60 秒热加载名单
-    [[ $(( now % 60 )) -eq 0 ]] && load_lists
-
-    # 到期自动解封
-    for ip in "${!banned_ips[@]}"; do
-        if [[ "${banned_ips[$ip]}" -le "$now" ]]; then
-            if ! is_blacklisted "$ip"; then
-                iptables -D DOCKER-USER -s "$ip" -j DROP 2>/dev/null
-                echo "$(date '+%Y-%m-%d %H:%M:%S') 解封 IP: $ip" | tee -a "$logblock"
-            fi
-            unset banned_ips["$ip"]
-        fi
-    done
-
-    # 提取 IP
-    ip=$(echo "$line" | perl -CSD -pe 's/[\x{200B}-\x{200D}]//g' \
-        | grep -Po '((Source Ip)|Response 500 to):?\s*\K[0-9]{1,3}(\.[0-9]{1,3}){3}' | head -1)
-
-    [[ -z "$ip" ]] && continue
-
-    # 新增：IP格式校验，不合法直接跳过
-    validate_ip "$ip" || continue
-
-    # 白名单直接跳过
-    if is_whitelisted "$ip"; then
-        continue
-    fi
-
-    # 永久黑名单直接 drop
-    if is_blacklisted "$ip"; then
-        [[ -z "${banned_ips[$ip]}" ]] && iptables -I DOCKER-USER -s "$ip" -j DROP 2>/dev/null
-        continue
-    fi
-
-    # 临时封禁中，不再统计
-    if [[ -n "${banned_ips[$ip]}" ]]; then
-        continue
-    fi
-
-
-    # -----------------------------
-    # BadHttpRequestException
-    # -----------------------------
-    if echo "$line" | grep -q "BadHttpRequestException"; then
-        badhttp_times[$ip]="${badhttp_times[$ip]} $now"
-        badhttp_times[$ip]=$(echo "${badhttp_times[$ip]}" | tr ' ' '\n' | awk -v n=$now '$1 >= n-1' | tr '\n' ' ')
-        count=$(echo "${badhttp_times[$ip]}" | wc -w)
-
-        if [[ "$count" -ge "$BADHTTP_THRESHOLD" ]]; then
-            ban_count[$ip]=$(( ${ban_count[$ip]:-0} + 1 ))
-            bantime=$(get_bantime "$ip")
-
-            if [[ "$bantime" -ge 999999999 ]]; then
-                permaban "$ip"
-            else
-                iptables -I DOCKER-USER -s "$ip" -j DROP
-                banned_ips[$ip]=$((now + bantime))
-                echo "$(date '+%Y-%m-%d %H:%M:%S') 封禁 IP: $ip, 类型: BADHTTP, 第 ${ban_count[$ip]} 次, 封禁 ${bantime}s" | tee -a "$logblock"
-            fi
-            badhttp_times[$ip]=""
-        fi
-    fi
-
-
-    # -----------------------------
-    # Response 500
-    # -----------------------------
-    if echo "$line" | grep -q "Response 500 to"; then
-        resp500_times[$ip]="${resp500_times[$ip]} $now"
-        resp500_times[$ip]=$(echo "${resp500_times[$ip]}" | tr ' ' '\n' | awk -v n=$now '$1 >= n-1' | tr '\n' ' ')
-        count=$(echo "${resp500_times[$ip]}" | wc -w)
-
-        if [[ "$count" -ge "$RESP500_THRESHOLD" ]]; then
-            ban_count[$ip]=$(( ${ban_count[$ip]:-0} + 1 ))
-            bantime=$(get_bantime "$ip")
-
-            if [[ "$bantime" -ge 999999999 ]]; then
-                permaban "$ip"
-            else
-                iptables -I DOCKER-USER -s "$ip" -j DROP
-                banned_ips[$ip]=$((now + bantime))
-                echo "$(date '+%Y-%m-%d %H:%M:%S') 封禁 IP: $ip, 类型: RESP500, 第 ${ban_count[$ip]} 次, 封禁 ${bantime}s" | tee -a "$logblock"
-            fi
-            resp500_times[$ip]=""
-        fi
-    fi
-
+    log "⚠️ inotifywait 意外退出，3秒后重启..."
+    sleep 3
 done
 EOF
 
-# ===========================
-# 权限
-# ===========================
-sudo chmod +x /usr/local/bin/emby-watch.sh
+chmod +x /usr/local/bin/emby-watch.sh
 
-# ===========================
-# 创建必要目录和空文件（防止脚本启动时报错）
-# ===========================
-sudo mkdir -p /var/log/emby
-sudo touch /var/log/emby/emby-badhttp-block.log
-sudo touch /var/log/emby/emby_whitelist.txt
-sudo touch /var/log/emby/emby_blacklist.txt
+# ========== 依赖检查 ==========
+if ! command -v inotifywait >/dev/null 2>&1; then
+    echo "⚠️ 未检测到 inotifywait，正在安装 inotify-tools..."
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update -y && apt-get install -y inotify-tools
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y inotify-tools
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y inotify-tools
+    elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache inotify-tools
+    else
+        echo "❌ 无法自动安装 inotify-tools，请手动安装后重试"
+        exit 1
+    fi
+fi
 
-# ===========================
-# 创建 systemd 服务（风格对齐 xiaoya）
-# ===========================
-sudo tee /etc/systemd/system/emby-watch.service > /dev/null << 'EOF'
+# ========== 日志目录 ==========
+mkdir -p "$(dirname /var/log/emby-watch-ultimate.log)"
+touch /var/log/emby-watch-ultimate.log
+
+# ========== systemd 服务 ==========
+cat > /etc/systemd/system/emby-watch.service << 'EOF'
 [Unit]
-Description=Emby BadHttp Monitor Service
+Description=小雅 Emby 新增 strm 精准单库刷新监控
 After=network.target
 
 [Service]
 Type=simple
-User=root
 ExecStart=/usr/local/bin/emby-watch.sh
 Restart=always
 RestartSec=5
+User=root
 StandardOutput=journal
 StandardError=journal
 
@@ -244,18 +145,16 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
-# ===========================
-# 启动并开机自启
-# ===========================
-sudo systemctl daemon-reload
-sudo systemctl enable --now emby-watch.service
-sudo systemctl restart emby-watch.service
+systemctl daemon-reload
+systemctl restart emby-watch
+systemctl enable emby-watch
+journalctl -u emby-watch.service -f
 
-echo "=============================================="
-echo "安装完成！"
-echo "服务名：emby-watch.service"
-echo "查看实时日志：journalctl -u emby-watch.service -f"
-echo "白名单文件：/var/log/emby/emby_whitelist.txt"
-echo "永久黑名单：/var/log/emby/emby_blacklist.txt"
-echo "封禁日志：  /var/log/emby/emby-badhttp-block.log"
-echo "=============================================="
+echo 功能总结：
+echo 1、实时监控 9 个指定路径下的新增 .strm 文件
+echo 2、按路径精准匹配对应 Emby Library ID
+echo 3、只刷新对应单库，不全库扫描
+echo 4、双 Emby 实例（6908 / 6909）同时触发
+echo 5、库级防抖 10 秒，避免频繁刷新
+echo 6、inotifywait 意外退出自动 3 秒重启
+echo 7、日志写入 /var/log/emby-watch-ultimate.log
