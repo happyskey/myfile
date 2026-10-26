@@ -117,12 +117,12 @@ Tmdbtest() {
     http_code=$(curl -L --head --silent -w "%{http_code}" "https://wsrv.nl/?url=https://image.tmdb.org/t/p/original/gFT9RJ92gPZvsIjbbkZtnktU6wj.jpg" | tail -n1)
     if [[ "$http_code" -eq 200 && "$content_type" == "image/jpeg" ]]; then
 		sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https:\/\/wsrv.nl\/?url=https:\/\/image.tmdb.org"|' "$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
-		INFO "图片下载失败，状态码: $http_code, Content-Type: $content_type"
+		INFO "图库CDN下载成功，状态码: $http_code, Content-Type: $content_type"
         INFO "Tmdb替换为wsrv.nl图库CDN"
     else
 		sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https://image.tmdb.org"|' "$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
-        INFO "图片下载成功，状态码: $http_code, Content-Type: $content_type"
-		INFO "Tmdb地址：image.tmdb.org"
+        INFO "图库CDN下载失败，状态码: $http_code, Content-Type: $content_type"
+		INFO "切回Tmdb地址：image.tmdb.org"
     fi
 	docker restart emby
 }
