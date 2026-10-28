@@ -1,6 +1,7 @@
 #!/bin/bash
 
-THRESHOLD=55
+# 内存占用百分比
+THRESHOLD=65
 
 # ===== emby1 =====
 emby1_address="http://127.0.0.1:6908"
