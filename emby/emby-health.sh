@@ -13,7 +13,7 @@ if ! curl --speed-time 10 --speed-limit 1 -sSf "$emby1_address/web/index.html" >
     emby1_ok=0
 fi
 
-emby1_mem=$(docker stats --no-stream --format '{{.MemPerc}}' emby1 | tr -d '%')
+emby1_mem=$(/snap/bin/docker/docker stats --no-stream --format '{{.MemPerc}}' emby1 | tr -d '%')
 if awk -v m="$emby1_mem" 'BEGIN{exit !(m>'"$THRESHOLD"')}'; then
     echo "[$(date '+%F %T')] emby1 内存占用 ${emby1_mem}%，已达到阈值 ${THRESHOLD}%，重启 emby1"
     docker restart emby1
@@ -34,7 +34,7 @@ if ! curl --speed-time 10 --speed-limit 1 -sSf "$emby2_address/web/index.html" >
     emby2_ok=0
 fi
 
-emby2_mem=$(docker stats --no-stream --format '{{.MemPerc}}' emby2 | tr -d '%')
+emby2_mem=$(/snap/bin/docker/docker stats --no-stream --format '{{.MemPerc}}' emby2 | tr -d '%')
 if awk -v m="$emby2_mem" 'BEGIN{exit !(m>'"$THRESHOLD"')}'; then
     echo "[$(date '+%F %T')] emby2 内存占用 ${emby2_mem}%，已达到阈值 ${THRESHOLD}%，重启 emby2"
     docker restart emby2
