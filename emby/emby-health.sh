@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # 内存占用百分比
 THRESHOLD=65
 
