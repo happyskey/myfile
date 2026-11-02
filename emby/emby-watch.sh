@@ -16,11 +16,11 @@ PATHS=(
     "$medir_dir/xiaoya/国产剧专属/电影"
     "$medir_dir/xiaoya/国产剧专属/电视剧集"
     "$medir_dir/xiaoya/strm"
-    "$medir_dir/xiaoya/国产剧专属/综艺"
+    "$medir_dir/xiaoya/综艺"
 )
 
 # 这里是每个库对应的真正 Emby Library ID（必须核对正确）
-IDS=(118755 118860 1616971 1649163 775355 2835113 2832232 3549058 3113916)
+IDS=(118755 118860 1616971 1649163 775355 2835113 2832232 3549058 2835560)
 
 API_KEY="887bd92fa1aa4938a34d968b9575ab74"
 EMBY_URLS=("http://127.0.0.1:6908" "http://127.0.0.1:6909")
