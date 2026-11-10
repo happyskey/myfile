@@ -182,7 +182,8 @@ else
     if echo "$CONTENT" | grep -q "newstrm"; then
         hostaddr="http://web.happyskey.top:8108"
     else
-        hostaddr="http://frp1.yytj.shop:8108"
+		hostaddr="http://web.happyskey.top:8108"
+        #hostaddr="http://frp1.yytj.shop:8108"
     fi
 fi
 
