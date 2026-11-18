@@ -23,17 +23,16 @@ check_cmcc() {
 }
 
 # 备用地址
-download_url1=https://gitxx.tv2345.top/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main
+download_url1=http://web.happyskey.top:8108/data
 download_url2=https://data.xiaoya.pro
 
 # 网络获取可用URL
 # alive_urls=($(curl --ipv4 -s --max-time 4 "https://api.akams.cn/github" | jq -r '.data | sort_by(-.speed, .latency) | .[:10] | .[].url' | sed 's#$#/https://raw.githubusercontent.com/xiaoyaDev/data/main#g' ))
 
-# 默认地址"https://gh.aeko.cn/https://raw.githubusercontent.com/xiaoyaDev/data/main"
+# 备用地址：https://gh.acmsz.top/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main
 mirror_base_urls=(
     "http://web.happyskey.top:8108/data"
     "https://ghfast.top/https://raw.githubusercontent.com/xiaoyaDev/data/refs/heads/main"
-    "https://gitxx.tv2345.top/https://raw.githubusercontent.com/xiaoyaDev/data/main"
 )
 
 # 合并 URL 到 base_urls
