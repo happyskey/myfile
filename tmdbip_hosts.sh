@@ -53,7 +53,6 @@ do
         if [ -f "$JSON_FILE" ]; then
             sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https://image.tmdb.org"|' "$JSON_FILE"
             echo "✅ 配置文件已修改为直连模式 (https://image.tmdb.org)"
-            docker restart embyserver
         fi
         exit 0
     fi
@@ -64,7 +63,6 @@ do
         if [ -f "$JSON_FILE" ]; then
             sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https:\/\/wsrv.nl\/?url=https:\/\/image.tmdb.org"|' "$JSON_FILE"
             echo "✅ 配置文件已修改为代理模式 (wsrv.nl)"
-            docker restart embyserver
         fi
         exit 0
     fi
