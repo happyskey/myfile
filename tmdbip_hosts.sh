@@ -8,7 +8,7 @@ URL_PRIMARY="https://image.tmdb.org${IMG_PATH}"
 URL_FALLBACK="https://wsrv.nl/?url=https://image.tmdb.org${IMG_PATH}"
 
 # 获取 Emby 插件配置目录
-emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' emby)")
+emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' embyserver)")
 JSON_FILE="$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
 
 echo "正在拉取远程IP列表: $REMOTE_IP_LIST"
@@ -46,8 +46,6 @@ do
     echo "▶ 当前测试 IP: $ip"
     [ $RES_PRIMARY -eq 0 ] && echo "  [✅ 成功] image.tmdb.org 直连" || echo "  [❌ 失败] image.tmdb.org 直连"
     [ $RES_FALLBACK -eq 0 ] && echo "  [✅ 成功] wsrv.nl 代理" || echo "  [❌ 失败] wsrv.nl 代理"
-
-    # ================= 逻辑判断与配置修改 =================
     
     # 1. 优先判断直连
     if [ $RES_PRIMARY -eq 0 ]; then
@@ -55,6 +53,7 @@ do
         if [ -f "$JSON_FILE" ]; then
             sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https://image.tmdb.org"|' "$JSON_FILE"
             echo "✅ 配置文件已修改为直连模式 (https://image.tmdb.org)"
+            docker restart embyserver
         fi
         exit 0
     fi
@@ -65,6 +64,7 @@ do
         if [ -f "$JSON_FILE" ]; then
             sed -i -E 's|("AltMovieDbImageUrl"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"https:\/\/wsrv.nl\/?url=https:\/\/image.tmdb.org"|' "$JSON_FILE"
             echo "✅ 配置文件已修改为代理模式 (wsrv.nl)"
+            docker restart embyserver
         fi
         exit 0
     fi
