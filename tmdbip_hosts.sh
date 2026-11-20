@@ -11,6 +11,8 @@ fi
 
 while read -r ip
 do
+    # 去掉回车和首尾空白
+    ip=$(echo "$ip" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     [ -z "$ip" ] && continue
 
     # 生成hosts，重定向覆盖docker /etc/hosts
@@ -24,8 +26,10 @@ do
     if [ $? -eq 0 ];then
         echo "✅ 测试成功，已经写入hosts，生效IP：$ip"
         exit 0
+    else
+        echo "❌ 测试失败，IP：$ip"
     fi
 done < "$TMP_IP_FILE"
 
-echo "⚠️ 远程IP列表全部测试完毕，无可用IP"
+echo "⚠️ 远程IP列表测试完毕，无可用IP"
 exit 1
