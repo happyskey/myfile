@@ -26,22 +26,20 @@ do
     cat /tmp/hosts.tmp > /etc/hosts
 
     # ---------- 域名测试：image.tmdb.org 直连 ----------
-    echo "🔎 image.tmdb.org ，IP：$ip"
+    echo "域名：image.tmdb.org ，IP：$ip"
     wget -T 8 -t 1 --spider "$URL_PRIMARY" >/dev/null 2>&1
     if [ $? -eq 0 ];then
-        echo "✅ 域名image.tmdb.org测试成功，已写入hosts，生效IP：$ip"
+        echo "✅ 域名：image.tmdb.org测试成功，已写入hosts，生效IP：$ip"
         exit 0
     fi
 
     # ---------- 域名测试：wsrv.nl 代理 ----------
-    echo "🔁 wsrv.nl ，IP：$ip"
+    echo "域名：wsrv.nl ，IP：$ip"
     wget -T 8 -t 1 --spider "$URL_FALLBACK" >/dev/null 2>&1
     if [ $? -eq 0 ];then
-        echo "✅ 域名wsrv.nl测试成功，已写入hosts，生效IP：$ip"
+        echo "✅ 域名：wsrv.nl测试成功，已写入hosts，生效IP：$ip"
         exit 0
     fi
-
-    echo "❌ 两个域名测试均失败，IP：$ip"
 done < "$TMP_IP_FILE"
 
 echo "⚠️ 远程IP列表测试完毕，无可用IP!"
