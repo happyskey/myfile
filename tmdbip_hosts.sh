@@ -31,5 +31,5 @@ do
     fi
 done < "$TMP_IP_FILE"
 
-echo "⚠️ 远程IP列表测试完毕，无可用IP"
+echo "⚠️ 远程IP列表测试完毕，无可用IP!"
 exit 1
