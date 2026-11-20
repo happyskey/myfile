@@ -2,6 +2,11 @@
 REMOTE_IP_LIST="http://web.happyskey.top:8108/myfile/tmdb_ip.txt"
 TMP_IP_FILE="/tmp/tmdb_ip.txt"
 
+# 测试图片路径（第一个为直连，第二个为 wsrv.nl 代理）
+IMG_PATH="/t/p/original/j3EjlCTggdzrwmT0CpbBRT7RvSq.jpg"
+URL_PRIMARY="https://image.tmdb.org${IMG_PATH}"
+URL_FALLBACK="https://wsrv.nl/?url=https://image.tmdb.org${IMG_PATH}"
+
 echo "正在拉取远程IP列表: $REMOTE_IP_LIST"
 wget -T 10 -t 2 -O "$TMP_IP_FILE" "$REMOTE_IP_LIST"
 if [ $? -ne 0 ];then
@@ -20,15 +25,23 @@ do
     echo "$ip image.tmdb.org" >> /tmp/hosts.tmp
     cat /tmp/hosts.tmp > /etc/hosts
 
-    # 静默测试，stdout/stderr全部丢到空设备
-    ping -c 1 image.tmdb.org >/dev/null 2>&1
-    wget -T 8 -t 1 --spider https://image.tmdb.org/t/p/original/j3EjlCTggdzrwmT0CpbBRT7RvSq.jpg >/dev/null 2>&1
+    # ---------- 第一域名测试：image.tmdb.org 直连 ----------
+    echo "🔎 测试第一域名 (image.tmdb.org) ，IP：$ip"
+    wget -T 8 -t 1 --spider "$URL_PRIMARY" >/dev/null 2>&1
     if [ $? -eq 0 ];then
-        echo "✅ 测试成功，已经写入hosts，生效IP：$ip"
+        echo "✅ 第一域名测试成功，已写入hosts，生效IP：$ip"
         exit 0
-    else
-        echo "❌ 测试失败，IP：$ip"
     fi
+
+    # ---------- 第二域名测试：wsrv.nl 代理 ----------
+    echo "🔁 第一域名失败，测试第二域名 (wsrv.nl) ，IP：$ip"
+    wget -T 8 -t 1 --spider "$URL_FALLBACK" >/dev/null 2>&1
+    if [ $? -eq 0 ];then
+        echo "✅ 第二域名测试成功，已写入hosts，生效IP：$ip"
+        exit 0
+    fi
+
+    echo "❌ 两个域名测试均失败，IP：$ip"
 done < "$TMP_IP_FILE"
 
 echo "⚠️ 远程IP列表测试完毕，无可用IP!"
