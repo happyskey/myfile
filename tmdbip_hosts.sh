@@ -25,19 +25,19 @@ do
     echo "$ip image.tmdb.org" >> /tmp/hosts.tmp
     cat /tmp/hosts.tmp > /etc/hosts
 
-    # ---------- 第一域名测试：image.tmdb.org 直连 ----------
-    echo "🔎 测试第一域名 (image.tmdb.org) ，IP：$ip"
+    # ---------- 域名测试：image.tmdb.org 直连 ----------
+    echo "🔎 image.tmdb.org ，IP：$ip"
     wget -T 8 -t 1 --spider "$URL_PRIMARY" >/dev/null 2>&1
     if [ $? -eq 0 ];then
-        echo "✅ 第一域名测试成功，已写入hosts，生效IP：$ip"
+        echo "✅ 域名image.tmdb.org测试成功，已写入hosts，生效IP：$ip"
         exit 0
     fi
 
-    # ---------- 第二域名测试：wsrv.nl 代理 ----------
-    echo "🔁 第一域名失败，测试第二域名 (wsrv.nl) ，IP：$ip"
+    # ---------- 域名测试：wsrv.nl 代理 ----------
+    echo "🔁 wsrv.nl ，IP：$ip"
     wget -T 8 -t 1 --spider "$URL_FALLBACK" >/dev/null 2>&1
     if [ $? -eq 0 ];then
-        echo "✅ 第二域名测试成功，已写入hosts，生效IP：$ip"
+        echo "✅ 域名wsrv.nl测试成功，已写入hosts，生效IP：$ip"
         exit 0
     fi
 
