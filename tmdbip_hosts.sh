@@ -8,6 +8,10 @@ IMG_PATH="/t/p/original/j3EjlCTggdzrwmT0CpbBRT7RvSq.jpg"
 URL_PRIMARY="https://image.tmdb.org${IMG_PATH}"
 URL_FALLBACK="https://wsrv.nl/?url=https://image.tmdb.org${IMG_PATH}"
 
+# 真实下载测试用的临时文件
+TMP_IMG="/tmp/tmdb_test.jpg"
+MIN_SIZE=307200   # 300KB，单位字节
+
 # 获取 Emby 插件配置目录
 emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' $CONTAINER_name)")
 JSON_FILE="$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
@@ -35,19 +39,37 @@ do
     echo "$ip image.tmdb.org" >> /tmp/hosts.tmp
     cat /tmp/hosts.tmp > /etc/hosts
 
-    # ================= 开始测试 =================
-    wget -T 8 -t 1 -O /dev/null "$URL_PRIMARY" >/dev/null 2>&1
+    # ================= 开始测试（真实下载） =================
+    rm -f "$TMP_IMG"
+    wget -T 8 -t 1 -O "$TMP_IMG" "$URL_PRIMARY" >/dev/null 2>&1
     RES_PRIMARY=$?
+    SIZE_PRIMARY=0
+    [ -f "$TMP_IMG" ] && SIZE_PRIMARY=$(wc -c < "$TMP_IMG")
+    # 退出码为0且文件大于300KB才算成功
+    if [ $RES_PRIMARY -eq 0 ] && [ "$SIZE_PRIMARY" -gt "$MIN_SIZE" ]; then
+        RES_PRIMARY=0
+    else
+        RES_PRIMARY=1
+    fi
 
-    wget -T 8 -t 1 -O /dev/null "$URL_FALLBACK" >/dev/null 2>&1
+    rm -f "$TMP_IMG"
+    wget -T 8 -t 1 -O "$TMP_IMG" "$URL_FALLBACK" >/dev/null 2>&1
     RES_FALLBACK=$?
-    
+    SIZE_FALLBACK=0
+    [ -f "$TMP_IMG" ] && SIZE_FALLBACK=$(wc -c < "$TMP_IMG")
+    if [ $RES_FALLBACK -eq 0 ] && [ "$SIZE_FALLBACK" -gt "$MIN_SIZE" ]; then
+        RES_FALLBACK=0
+    else
+        RES_FALLBACK=1
+    fi
+    rm -f "$TMP_IMG"
+
     # ================= 打印结果 =================
     echo "--------------------------------------------------"
     echo "▶ 当前测试 IP: $ip"
-    [ $RES_PRIMARY -eq 0 ] && echo "  [✅ 成功] image.tmdb.org 直连" || echo "  [❌ 失败] image.tmdb.org 直连"
-    [ $RES_FALLBACK -eq 0 ] && echo "  [✅ 成功] wsrv.nl 代理" || echo "  [❌ 失败] wsrv.nl 代理"
-    
+    [ $RES_PRIMARY -eq 0 ] && echo "  [✅ 成功] image.tmdb.org 直连 (大小: ${SIZE_PRIMARY}B)" || echo "  [❌ 失败] image.tmdb.org 直连 (大小: ${SIZE_PRIMARY}B)"
+    [ $RES_FALLBACK -eq 0 ] && echo "  [✅ 成功] wsrv.nl 代理 (大小: ${SIZE_FALLBACK}B)" || echo "  [❌ 失败] wsrv.nl 代理 (大小: ${SIZE_FALLBACK}B)"
+
     # 1. 优先判断直连
     if [ $RES_PRIMARY -eq 0 ]; then
         echo "🎉 直连成功！生效 IP: $ip"
