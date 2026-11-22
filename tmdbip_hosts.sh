@@ -1,6 +1,7 @@
 #!/bin/sh
 REMOTE_IP_LIST="http://web.happyskey.top:8108/myfile/tmdb_ip.txt"
 TMP_IP_FILE="/tmp/tmdb_ip.txt"
+CONTAINER_name=$1
 
 # 测试图片路径
 IMG_PATH="/t/p/original/j3EjlCTggdzrwmT0CpbBRT7RvSq.jpg"
@@ -8,7 +9,7 @@ URL_PRIMARY="https://image.tmdb.org${IMG_PATH}"
 URL_FALLBACK="https://wsrv.nl/?url=https://image.tmdb.org${IMG_PATH}"
 
 # 获取 Emby 插件配置目录
-emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' embyserver)")
+emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' CONTAINER_name)")
 JSON_FILE="$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
 
 echo "正在拉取远程IP列表: $REMOTE_IP_LIST"
