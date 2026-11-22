@@ -36,12 +36,12 @@ do
     cat /tmp/hosts.tmp > /etc/hosts
 
     # ================= 开始测试 =================
-    wget -T 8 -t 1 --spider "$URL_PRIMARY" >/dev/null 2>&1
+    wget -T 8 -t 1 -O /dev/null "$URL_PRIMARY" >/dev/null 2>&1
     RES_PRIMARY=$?
 
-    wget -T 8 -t 1 --spider "$URL_FALLBACK" >/dev/null 2>&1
+    wget -T 8 -t 1 -O /dev/null "$URL_FALLBACK" >/dev/null 2>&1
     RES_FALLBACK=$?
-
+    
     # ================= 打印结果 =================
     echo "--------------------------------------------------"
     echo "▶ 当前测试 IP: $ip"
