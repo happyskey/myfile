@@ -1,7 +1,7 @@
 #!/bin/sh
 REMOTE_IP_LIST="http://web.happyskey.top:8108/myfile/tmdb_ip.txt"
 TMP_IP_FILE="/tmp/tmdb_ip.txt"
-CONTAINER_name=$1 #容器名字
+CONTAINER_name=$1 #容器名字（保留参数，但测试不再依赖 docker exec）
 
 # ================= 测试图片路径 =================
 IMG_PATH_ORIG="/t/p/original/j3EjlCTggdzrwmT0CpbBRT7RvSq.jpg"
@@ -15,19 +15,7 @@ URL_FALLBACK_THUMB="https://wsrv.nl/?url=https://image.tmdb.org${IMG_PATH_THUMB}
 TMP_IMG_ORIG="/tmp/tmdb_test_orig.jpg"
 TMP_IMG_THUMB="/tmp/tmdb_test_thumb.jpg"
 
-# 检查 docker 是否可用（必须在宿主机运行）
-if ! command -v docker >/dev/null 2>&1; then
-    echo "❌ 当前环境找不到 docker 命令。此脚本必须在宿主机上运行，而不是容器内。"
-    exit 1
-fi
-
-# 检查容器是否存在
-if ! docker inspect "$CONTAINER_name" >/dev/null 2>&1; then
-    echo "❌ 容器 $CONTAINER_name 不存在或无法访问。"
-    exit 1
-fi
-
-# 获取 Emby 插件配置目录（宿主机路径）
+# 获取 Emby 插件配置目录
 emby_dir=$(dirname "$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/etc/nsswitch.conf"}}{{.Source}}{{end}}{{end}}' $CONTAINER_name)")
 JSON_FILE="$emby_dir/config/plugins/configurations/Strm Assistant_MetadataEnhanceOptions.json"
 
@@ -42,25 +30,23 @@ if [ ! -f "$JSON_FILE" ]; then
     echo "⚠️ 警告: 找不到配置文件 $JSON_FILE，将仅测试不修改配置。"
 fi
 
-# ================= 容器内测试函数 =================
-test_url_in_container() {
-    _cname="$1"
-    _url="$2"
-    _tmp="$3"
-    docker exec "$_cname" sh -c "
-        rm -f '$_tmp'
-        wget -T 8 -t 1 -O '$_tmp' '$_url' >/dev/null 2>&1
-        _res=\$?
-        _size=0
-        [ -f '$_tmp' ] && _size=\$(wc -c < '$_tmp')
-        if [ \$_res -eq 0 ] && [ \$_size -gt 0 ]; then
-            echo \"OK \$_size\"
-            exit 0
-        else
-            echo \"FAIL \$_res \$_size\"
-            exit 1
-        fi
-    "
+# ================= 测试函数（在本环境内直接 wget） =================
+# 返回 0 表示成功（退出码 0 且文件大小 > 0）
+test_url() {
+    _url="$1"
+    _tmp="$2"
+    rm -f "$_tmp"
+    wget -T 8 -t 1 -O "$_tmp" "$_url" >/dev/null 2>&1
+    _res=$?
+    _size=0
+    [ -f "$_tmp" ] && _size=$(wc -c < "$_tmp")
+    if [ $_res -eq 0 ] && [ "$_size" -gt 0 ]; then
+        echo "OK $_size"
+        return 0
+    else
+        echo "FAIL $_res $_size"
+        return 1
+    fi
 }
 
 while read -r ip
@@ -68,33 +54,31 @@ do
     ip=$(echo "$ip" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     [ -z "$ip" ] && continue
 
-    # ================= 在 Emby 容器内改写 hosts =================
-    docker exec "$CONTAINER_name" sh -c "
-        grep -v 'image.tmdb.org' /etc/hosts > /tmp/hosts.tmp
-        echo '$ip image.tmdb.org' >> /tmp/hosts.tmp
-        cat /tmp/hosts.tmp > /etc/hosts
-    "
-    if [ $? -ne 0 ]; then
-        echo "⚠️ 无法改写容器 $CONTAINER_name 的 /etc/hosts，跳过 IP: $ip"
-        continue
-    fi
+    # 生成 hosts，重定向覆盖 /etc/hosts（和最初脚本一致）
+    grep -v "image.tmdb.org" /etc/hosts > /tmp/hosts.tmp
+    echo "$ip image.tmdb.org" >> /tmp/hosts.tmp
+    cat /tmp/hosts.tmp > /etc/hosts
 
-    # ================= 容器内真实下载测试 =================
-    OUT_ORIG=$(test_url_in_container "$CONTAINER_name" "$URL_PRIMARY_ORIG" "$TMP_IMG_ORIG")
+    # ================= 测试 original =================
+    OUT_ORIG=$(test_url "$URL_PRIMARY_ORIG" "$TMP_IMG_ORIG")
     RES_ORIG=$?
     SIZE_ORIG=$(echo "$OUT_ORIG" | awk '{print $2}')
 
-    OUT_THUMB=$(test_url_in_container "$CONTAINER_name" "$URL_PRIMARY_THUMB" "$TMP_IMG_THUMB")
+    # ================= 测试 w780 =================
+    OUT_THUMB=$(test_url "$URL_PRIMARY_THUMB" "$TMP_IMG_THUMB")
     RES_THUMB=$?
     SIZE_THUMB=$(echo "$OUT_THUMB" | awk '{print $2}')
 
-    OUT_FB_ORIG=$(test_url_in_container "$CONTAINER_name" "$URL_FALLBACK_ORIG" "$TMP_IMG_ORIG")
+    # ================= 测试代理 original / w780 =================
+    OUT_FB_ORIG=$(test_url "$URL_FALLBACK_ORIG" "$TMP_IMG_ORIG")
     RES_FB_ORIG=$?
     SIZE_FB_ORIG=$(echo "$OUT_FB_ORIG" | awk '{print $2}')
 
-    OUT_FB_THUMB=$(test_url_in_container "$CONTAINER_name" "$URL_FALLBACK_THUMB" "$TMP_IMG_THUMB")
+    OUT_FB_THUMB=$(test_url "$URL_FALLBACK_THUMB" "$TMP_IMG_THUMB")
     RES_FB_THUMB=$?
     SIZE_FB_THUMB=$(echo "$OUT_FB_THUMB" | awk '{print $2}')
+
+    rm -f "$TMP_IMG_ORIG" "$TMP_IMG_THUMB"
 
     # ================= 打印结果 =================
     echo "--------------------------------------------------"
@@ -105,6 +89,7 @@ do
     [ $RES_FB_THUMB -eq 0 ] && echo "  [✅ 成功] wsrv.nl w780          (大小: ${SIZE_FB_THUMB:-0}B)" || echo "  [❌ 失败] wsrv.nl w780          (大小: ${SIZE_FB_THUMB:-0}B)"
 
     # ================= 判定逻辑 =================
+    # 直连：original 和 w780 都通过
     if [ $RES_ORIG -eq 0 ] && [ $RES_THUMB -eq 0 ]; then
         echo "🎉 直连完全可用（original + w780 均通过）！生效 IP: $ip"
         if [ -f "$JSON_FILE" ]; then
@@ -114,6 +99,7 @@ do
         exit 0
     fi
 
+    # 代理：original 和 w780 都通过
     if [ $RES_FB_ORIG -eq 0 ] && [ $RES_FB_THUMB -eq 0 ]; then
         echo "🎉 直连不满足，但代理完全可用（original + w780 均通过）！生效 IP: $ip"
         if [ -f "$JSON_FILE" ]; then
