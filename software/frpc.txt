@@ -1,0 +1,15 @@
+# frpc.toml
+serverAddr = "frp1.happyskey.top"
+serverPort = 25870
+auth.token = "acd987ccyy11"
+
+[transport]
+protocol = "kcp"
+
+[[proxies]]
+name = "xy_emby21082"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 2345
+remotePort = 21082
+transport.bandwidthLimit = "2MB"
